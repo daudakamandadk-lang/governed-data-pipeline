@@ -4,11 +4,12 @@ This directory contains **public reference datasets** used to test and develop t
 
 These files are not employer/client data and are not intended to represent current Uganda credit behaviour. They are used as reproducible benchmark datasets for profiling, data-quality checks, ETL development, feature engineering and later model validation.
 
-## Included datasets
+## Dataset availability
 
 ### Default of Credit Card Clients
 
 - File: `default_credit_card_clients.csv`
+- Repository status: empty placeholder (0 bytes); not a usable dataset. Obtain data from the official source before running extraction.
 - Provider: UCI Machine Learning Repository
 - Dataset ID: 350
 - DOI: 10.24432/C55S3H
@@ -22,6 +23,7 @@ Attribution: Yeh, I. (2009). *Default of Credit Card Clients* [Dataset]. UCI Mac
 ### South German Credit
 
 - File: `south_german_credit.asc`
+- Repository status: reference file present; inspect its whitespace-delimited format before loading.
 - Provider: UCI Machine Learning Repository
 - Dataset ID: 573
 - DOI: 10.24432/C5QG88

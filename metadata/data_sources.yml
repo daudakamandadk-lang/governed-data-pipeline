@@ -10,7 +10,8 @@ sources:
     provider: UCI Machine Learning Repository
     name: Default of Credit Card Clients
     category: retail_default_modelling
-    status: included
+    status: pending_import
+    note: Committed CSV is an empty placeholder; obtain data from the official source.
     local_path: data/public/default_credit_card_clients.csv
     license: CC_BY_4_0
     doi: 10.24432/C55S3H

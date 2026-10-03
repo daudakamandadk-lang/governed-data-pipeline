@@ -114,6 +114,38 @@ PORTFOLIO_NOTICE.md
 LICENSE
 ```
 
+## Local setup
+
+Use Python 3.10 or newer. From this repository's root in PowerShell:
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -e .
+.\.venv\Scripts\python.exe examples/dq_gate_demo.py
+```
+
+In VS Code, select the Python interpreter at `.venv/Scripts/python.exe`.
+The synthetic demo prints a validity score of 0.667 and a WARN decision.
+It checks three fields; one fails validity. This is the fraction of field
+checks passed, not the fraction of valid rows.
+
+The editable installation makes the `src/` package importable. Installing
+requirements alone does not install this package.
+
+## Current implementation limits
+
+`pipeline.py` returns a stage plan; it does not execute an end-to-end ETL job.
+Cleaning, transformation, quarantine routing, reconciliation and loading are
+planned. A gate decision does not implement these behaviours by itself.
+
+DQ helpers expect schema columns to exist and values to have suitable types.
+Empty rule sets score 1.0; this does not prove an empty dataset is acceptable.
+Null, dtype and missing-column handling need further testing.
+
+The newest standalone chunked/incremental extraction learning work lives in
+[the end-to-end learning repository](https://github.com/daudakamandadk-lang/Credit-Risk-Model-end-to-end-/tree/main/notebooks/02_governed_etl).
+Understand and harden that work before promoting it into this package.
+
 ## Example DQ gate
 
 A gate is intentionally generic. Thresholds are **configuration decisions**, not hard-coded business truths.
@@ -154,10 +186,10 @@ This means the pipeline can continue only under an explicitly defined warning po
 
 ## Public reference data
 
-Two reproducible UCI credit-risk datasets are included for pipeline testing and later statistical/model benchmarking:
+Two UCI datasets are catalogued for pipeline testing and later benchmarking:
 
-- **Default of Credit Card Clients** — 30,000 observations, CC BY 4.0.
-- **South German Credit** — 1,000 observations, CC BY 4.0.
+- **Default of Credit Card Clients** — the committed CSV is an empty placeholder; data has not been imported.
+- **South German Credit** — a reference file is present; inspect its format before loading it.
 
 Additional public/reference sources planned for calibration and scenario work include Bank of Uganda publications, Uganda National Panel Survey data, World Bank Global Findex, IMF macroeconomic indicators, HMDA and SBA lending data.
 
