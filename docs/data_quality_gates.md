@@ -1,62 +1,66 @@
 # Data Quality Gates
 
-## Why gates exist
+The original score gate summarizes passed field checks. The connected workflow uses a separate record gate after cleaning and revalidation to control target loading.
 
-A validation report by itself does not control a pipeline. A **data-quality gate** converts quality evidence into an execution decision.
+## Compatible score gate
 
-This project uses three gate states:
+```python
+from credit_risk_pipeline.gates import evaluate_gate
 
-- **PASS** — quality meets the configured acceptance threshold.
-- **WARN** — quality is below the preferred threshold but above the configured stop threshold; continuation must be explicitly allowed.
-- **STOP** — quality is below the minimum threshold and the pipeline should not continue automatically.
-
-The public prototype intentionally does not hard-code business thresholds. Thresholds belong to configuration/policy because the acceptable level depends on the dataset, Critical Data Element and use case.
-
-## Current dimensions
-
-Implemented prototype dimensions:
-
-- completeness;
-- validity;
-- uniqueness.
-
-Planned hardening includes:
-
-- consistency;
-- timeliness;
-- referential integrity;
-- business-rule validation;
-- reconciliation checks.
-
-## Gate placement
-
-The first gate sits after initial validation:
-
-```text
-extract -> profile -> validate -> GATE
+decision = evaluate_gate(score=0.94, pass_threshold=0.95, warn_threshold=0.90)
+print(decision.status.value)  # WARN
 ```
 
-The second gate sits after cleaning/revalidation:
+Outcomes are `PASS`, `WARN` and `STOP`. Thresholds satisfy `0 <= warn_threshold <= pass_threshold <= 1`.
+
+`dimension_score()` measures the share of field checks passed in one dimension. It does not measure valid rows. Empty check sets score `1.0`; that alone does not establish that an empty input is acceptable. Completeness owns missingness; validity and uniqueness assess present values.
+
+The [score demo](../examples/dq_gate_demo.py) returns `0.667` because one of three field validity checks fails. It performs no persistence or record routing.
+
+`can_continue(decision, allow_warning=True)` preserves its original default. Callers can pass `allow_warning=False` when warnings must stop their own workflow. The governed record gate has separately configured thresholds.
+
+## Record dispositions
+
+Every extracted record receives one post-cleaning disposition:
+
+| Disposition | Meaning | Eligible for loading |
+| --- | --- | --- |
+| `pass` | No unresolved defect or recorded correction | Yes |
+| `corrected` | Deterministic correction succeeded; no unresolved defect remains | Yes |
+| `quarantine` | Unresolved rule/value failures need investigation | No |
+| `reject` | No usable primary key | No |
+
+Correction history does not override defects: a corrected record can still be quarantined. Classification retains positional identity and reasons; it does not discard rows.
+
+The incremental workflow fails invalid/missing watermarks at extraction. Standalone classification can describe unusable keys, but extraction failures cannot always supply a safely ordered batch to quarantine.
+
+## Gate policy
+
+Record outcomes are lowercase `pass`, `warn` and `stop`. Thresholds declare maximum reject/quarantine rates and an optional quarantine warning rate. The gate combines those rates with batch-level structural failures.
+
+Default synthetic policy is strict: any bad record stops the batch. Eligible rows are held back, while quarantine and correction evidence is durably retained. A stopped batch does not load its accepted target or commit progress.
+
+`--allow-quarantine` explicitly enables the built-in demo's permissive policy. The demo permits a quarantine rate up to 60% and warns when it is above zero; its maximum reject rate stays zero. Bad rows and their evidence are persisted before eligible rows are loaded. Quarantine evidence is verified during reconciliation before progress commitment. Bad rows remain ineligible.
+
+This flag applies only to the built-in scenarios. With `--config`, set the desired thresholds in the JSON `gate` settings; scenario flags do not override that policy.
+
+Structural failures stop the batch regardless of acceptable individual cells. Missing required fields, unavailable references or unusable structure cannot be resolved by an aggregate rate.
+
+## Validation order
 
 ```text
-clean -> validate again -> GATE AGAIN
+profile -> validate original -> clean -> validate cleaned
+        -> classify -> record gate -> durable evidence -> eligible load
 ```
 
-This prevents a pipeline from assuming that a cleaning step automatically produced trustworthy data.
+Before-checks describe source values. Post-cleaning issues and unresolved cleaner issues drive dispositions. Cleaning can resolve parsing defects or create duplicates after trimming, so the second validation is required.
 
-## Record handling
+Standalone engines leave ordering and policy to their caller.
 
-Dataset-level gates and record-level classification solve different problems.
+## Progress and quarantine
 
-A dataset can have an overall gate decision while individual records are classified as:
+The fresh dirty scenario has three eligible and three quarantined rows. Strict policy inserts zero rows. The permissive run loads keys `1`, `2` and `6`, retains bad observations and commits progress to `6`.
 
-- **PASS** — accepted without correction;
-- **CORRECTED** — accepted after an approved deterministic correction;
-- **QUARANTINE** — isolated for investigation or manual review;
-- **REJECT** — cannot be accepted under the defined rules.
+Progress means the batch is accounted for under recorded policy. It does not mean all extracted rows were accepted. Quarantined older IDs need a separate correction/reprocessing process; automatic release is outside this build.
 
-Bad records should not simply disappear. Reason codes, keys and lineage should be preserved so processing remains auditable.
-
-## Scoring
-
-The current helper can calculate the share of field checks passed within one quality dimension. A later implementation can combine dimensions, Critical Data Element weighting and severity rules once those policies are explicitly defined and tested.
+See [reconciliation](reconciliation.md) and [engine boundaries](engine_boundaries.md).

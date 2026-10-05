@@ -1,81 +1,81 @@
 # Architecture
 
-## Purpose
+The package connects independent engines into a governed CSV-to-SQLite workflow. Engine APIs can also be called directly. The orchestrator owns stage order, policy, persistence and progress commitment.
 
-This repository represents the **governed data-pipeline layer** of a larger credit-risk system.
-
-The design assumes that a statistical or machine-learning risk model should not consume source data directly. Data first passes through controlled ingestion, profiling, validation, data-quality gates, cleaning, transformation and reconciliation.
+## Execution sequence
 
 ```text
-Source / Scenario
-      |
-      v
-Extraction
-      |
-      v
-Profiling
-      |
-      v
-Validation ---------> DQ evidence
-      |
-      v
-Quality Gate --STOP--> quarantine / investigation
-      |
-      v
-Cleaning
-      |
-      v
-Revalidation
-      |
-      v
-Transformation
-      |
-      v
-Reconciliation
-      |
-      v
-Classification
-      |
-      v
-Load / Curated Layer
-      |
-      v
-Feature Engineering
-      |
-      v
-Statistical Credit-Risk Engine
-      |
-      v
-PD / LGD / EAD / Expected Loss / Risk Grades
-      |
-      v
-Policy / Decisions / Reporting
+start run; persist configuration
+  -> observe source fingerprint
+  -> select CSV rows above committed watermark
+  -> read configured references; observe their fingerprints
+  -> profile input
+  -> validate before cleaning
+  -> clean a copy
+  -> validate after cleaning
+  -> classify records
+  -> evaluate record gate
+  -> persist quarantine observations and corrections
+       stopped: finish stopped run; no target writes or progress commitment
+       no new rows: finish empty run; retain existing progress
+       proceeding:
+         -> select pass/corrected rows
+         -> transform
+         -> load SQLite
+         -> reconcile target and audit evidence
+         -> verify observed files
+         -> commit JSON progress
+         -> finish successful run
 ```
 
-## Component boundaries
+Initial validation describes what arrived. Post-cleaning validation and unresolved cleaning issues determine eligibility. A successful correction can resolve an original defect; a correction can also create a duplicate, which is why validation runs again.
 
-**Extraction** gets the data and records structural metadata.
+## Component responsibilities
 
-**Profiling** describes what actually arrived before assumptions are imposed.
+| Module | Responsibility | Boundary |
+| --- | --- | --- |
+| `extraction.py` | Read configured files and return metadata | Does not decide business validity |
+| `incremental.py` | Select new CSV rows and explicitly manage JSON progress | Does not load targets |
+| `profiling.py` | Describe structure, missingness, frequencies and distributions | Does not clean, accept or persist rows |
+| `cleaning.py` | Normalize declared fields and return corrections/issues | Preserves input; does not invent values or discard rows |
+| `validation.py` | Assess types, field rules, structure, relationships and references | Reports defects without repairs |
+| `record_gates.py` | Classify records and evaluate batch thresholds | Does not write accepted or quarantined data |
+| `transformation.py` | Derive configured bands on a copy | Does not grant eligibility or commit progress |
+| `loading.py` | Insert/reuse accepted rows and reconcile stored evidence | Does not call the cleaner or apply gate policy |
+| `audit.py` | Persist run events, quarantine observations and corrections | Does not select rows for loading |
+| `pipeline.py` | Coordinate stages and failure boundaries | Owns the connected workflow |
+| `contracts.py`, `values.py` | Share neutral types and value helpers | Contain no orchestration policy |
 
-**Validation** evaluates data against explicit schema and rule metadata.
+Compatible score helpers in `dq.py` and `gates.py` remain independently useful. They are distinct from the record gate used by the connected workflow.
 
-**Data-quality gates** decide whether the pipeline can continue, continue with a warning, or stop.
+## Persistence
 
-**Cleaning** standardises or repairs only where an approved correction exists.
+One SQLite database holds the accepted target and audit tables:
 
-**Revalidation** proves that cleaning did not introduce or leave unresolved defects.
+| Table | Evidence |
+| --- | --- |
+| `etl_jobs` | Job identity and source/target/progress binding |
+| `etl_runs` | Run identity, timestamps, configuration, status and summary |
+| `etl_events` | Stage events, attempts and stage evidence |
+| `etl_quarantine` | Observed bad rows, disposition, reasons, original and cleaned values |
+| `etl_corrections` | Original/cleaned cell values and correction reasons |
 
-**Transformation** derives business-ready structures and fields.
+Targets cannot use the reserved `etl_` prefix. Quarantine identity describes an observation of a source batch under a policy. It is not a deduplicated current register of business records.
 
-**Reconciliation** proves that records and important totals remain explainable across processing.
+JSON stores extraction progress separately. The order is: durable quarantine/corrections, load, reconciliation, then progress. Identical replay can reuse target rows when an earlier load committed but progress did not.
 
-**Classification** assigns controlled outcomes such as PASS, CORRECTED, QUARANTINE or REJECT.
+## Configuration and integrity
 
-**Loading** persists only the intended outputs into the next governed layer.
+Configuration declares schema, gate thresholds, date formats, optional band transformation, reference paths, numeric totals and retry limit. Source/reference fingerprints detect changes during an observed run before progress is committed. They do not implement a general history of source updates.
 
-## Downstream system
+Each job needs its own progress location. Journal bindings detect conflicting identities within the same database. They do not coordinate different databases or concurrent processes. Use one writer.
 
-The curated output is intended to become the input to feature engineering and a statistical credit-risk engine. That later engine will estimate quantities such as PD, LGD, EAD and expected loss, with risk estimates kept separate from lending-policy decisions.
+## Limits and downstream use
 
-Machine learning is a later layer, not a substitute for governed data engineering.
+The incremental engine rereads a small append-only CSV and selects unique increasing integer watermarks. CDC, deletes, older-row updates, late arrivals and quarantine release are outside this build.
+
+SQLite transactions protect individual target loads. SQLite and JSON have no shared transaction. Reconciliation covers the current accepted batch and target growth; full historical and cross-table reconciliation are future work.
+
+Curated output can feed later analytics and feature engineering. PD, LGD, EAD, expected loss, machine learning and lending policy remain outside this package.
+
+See [engine boundaries](engine_boundaries.md), [data contracts](data_contracts.md) and [reconciliation](reconciliation.md).

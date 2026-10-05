@@ -1,49 +1,36 @@
-# Wider Credit-Risk System Roadmap
+# Roadmap
 
-This pipeline is one layer of a larger system.
+The current milestone is a reusable, executable CSV-to-SQLite workflow. It packages the learning implementation with independent engines, governed orchestration and explicit limits.
 
-## 1. Data foundation and scenarios
+## Delivered workflow
 
-- canonical applicant, income, application, loan and repayment structures;
-- synthetic/reference data;
-- source catalogue and provenance;
-- scenario configuration.
+- File extraction and independent profiling.
+- Declared types, completeness, validity, uniqueness, conditional relationships and reference checks.
+- Deterministic cleaning with correction history.
+- Post-cleaning dispositions and configurable batch gates.
+- Durable events, quarantine observations and corrections.
+- Insert-once SQLite loading with identical replay and conflict rollback.
+- Current-batch reconciliation of rows, keys, values, totals and observed files.
+- Deferred JSON progress commitment and bounded retries.
+- Synthetic scenarios and direct-engine examples.
+- Compatibility for original field-score DQ and gate APIs.
 
-## 2. Governed ETL and data quality
+The incremental case remains small append-only CSVs with unique increasing integer watermarks and one writer.
 
-- extraction and profiling;
-- metadata-driven validation;
-- completeness, validity, uniqueness, consistency and timeliness controls;
-- cleaning and standardisation;
-- quality gates;
-- transformation and reconciliation;
-- PASS / CORRECTED / QUARANTINE / REJECT handling;
-- curated trusted data.
+## Next hardening priorities
 
-**This public repository currently focuses here.**
+1. Define and test historical correction/reprocessing, quarantine release and effects on target values/progress.
+2. Strengthen recovery around separate SQLite and JSON stores, including incomplete journal finalization.
+3. Extend reconciliation where a justified use case requires historical or cross-table evidence.
+4. Improve large-file resource use without weakening ordering, source integrity or audit guarantees.
+5. Broaden examples and failure coverage as contracts and transformations grow.
 
-## 3. Statistical credit-risk engine
+These are future work. Database extraction, CDC, deletes, late arrivals, composite watermarks and concurrent execution are outside this milestone.
 
-- feature engineering;
-- distribution/statistical analysis;
-- probability of default (PD);
-- loss given default (LGD);
-- exposure at default (EAD);
-- expected loss;
-- risk grades and reason codes;
-- stress/scenario analysis;
-- separation of risk estimates from lending policy.
+## Wider project context
 
-## 4. Machine learning and model operations
+Curated data can support later feature engineering, statistics and PD/LGD/EAD or machine-learning work in the wider credit-risk project. Those capabilities belong to their own components. This package does not estimate risk or make lending decisions.
 
-- logistic-regression baseline and candidate models;
-- training/validation/out-of-time testing;
-- calibration, discrimination and stability;
-- explainability;
-- model comparison;
-- monitoring and retraining criteria;
-- deployment only after the governed data and statistical baseline are stable.
+Public/reference inputs retain provenance and usage limits. Foreign or historical datasets do not establish current Uganda credit behavior.
 
-The development principle is:
-
-**build -> break -> understand -> refactor -> test -> commit -> repeat**
+See [architecture](architecture.md), [migration](migration.md) and [public reference data](../data/public/README.md).
