@@ -4,15 +4,20 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "credit-risk-pipeline"
-version = "0.1.0"
-description = "Work-in-progress governed data pipeline for a wider credit-risk analytics system"
-requires-python = ">=3.10"
-dependencies = [
-    "numpy",
-    "pandas",
-    "openpyxl",
-    "pyarrow"
-]
+version = "0.2.0"
+description = "Reusable data-quality engines and a governed CSV-to-SQLite learning workflow"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = ["numpy>=1.24,<3", "pandas>=2.2,<4"]
+
+[project.optional-dependencies]
+file-formats = ["openpyxl>=3.1", "pyarrow>=15"]
+
+[project.scripts]
+governed-pipeline = "credit_risk_pipeline.demo:cli"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+credit_risk_pipeline = ["demo_config.json"]

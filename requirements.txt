@@ -1,4 +1,2 @@
-numpy
-pandas
-openpyxl
-pyarrow
+# Install the package and its core dependencies from this checkout.
+-e .

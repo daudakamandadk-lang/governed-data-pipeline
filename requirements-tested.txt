@@ -1,0 +1,4 @@
+# Reference verification environment; not a cross-platform lock file.
+# Python 3.12.14; regression suite also checked on Python 3.14.6.
+numpy==2.3.5
+pandas==3.0.1

@@ -1,0 +1,83 @@
+{
+  "job_name": "governed_transactions",
+  "source": "data/local/governed_demo/transactions.csv",
+  "database_path": "data/local/governed_demo/target.db",
+  "watermark_path": "data/local/governed_demo/progress.json",
+  "target_table": "transactions",
+  "watermark_column": "transaction_id",
+  "max_attempts": 2,
+  "date_formats": {
+    "application_date": "%Y-%m-%d",
+    "snapshot_date": "%Y-%m-%d"
+  },
+  "gate": {
+    "max_reject_rate": 0.0,
+    "max_quarantine_rate": 0.0,
+    "warn_quarantine_rate": null
+  },
+  "sum_columns": [
+    "amount"
+  ],
+  "schema": {
+    "table": "learning_transactions",
+    "primary_key": "transaction_id",
+    "columns": {
+      "transaction_id": {
+        "dtype": "integer",
+        "required": true,
+        "unique": true
+      },
+      "applicant_id": {
+        "dtype": "string",
+        "required": true
+      },
+      "amount": {
+        "dtype": "float",
+        "required": true,
+        "min": 0
+      },
+      "employed": {
+        "dtype": "boolean",
+        "required": true
+      },
+      "application_date": {
+        "dtype": "date",
+        "required": true
+      },
+      "snapshot_date": {
+        "dtype": "date",
+        "required": true
+      }
+    },
+    "comparisons": [
+      {
+        "left": "application_date",
+        "operator": "le",
+        "right": "snapshot_date",
+        "code": "application_after_snapshot"
+      },
+      {
+        "left": "snapshot_date",
+        "operator": "le",
+        "value": "2026-10-05",
+        "code": "future_snapshot"
+      }
+    ]
+  },
+  "transform": {
+    "source_column": "amount",
+    "derived_column": "amount_band",
+    "rules": [
+      {
+        "low": 0,
+        "high": 250,
+        "label": "small"
+      },
+      {
+        "low": 250,
+        "high": null,
+        "label": "large"
+      }
+    ]
+  }
+}
