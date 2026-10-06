@@ -1,9 +1,9 @@
 """Use profile, clean and validate independently, without persistent writes."""
 from pprint import pprint
 import pandas as pd
-from credit_risk_pipeline.cleaning import CleaningEngine
-from credit_risk_pipeline.profiling import profile_data
-from credit_risk_pipeline.validation import validate_fields
+from governed_data_pipeline.cleaning import CleaningEngine
+from governed_data_pipeline.profiling import profile_data
+from governed_data_pipeline.validation import validate_fields
 
 
 def main():

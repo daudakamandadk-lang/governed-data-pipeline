@@ -1,24 +1,10 @@
-"""Reusable engines and a connected CSV-to-SQLite learning workflow."""
-from importlib import import_module
-
-__version__ = "0.2.0"
-_EXPORTS = {
-    "cleaning": ["CleaningEngine"],
-    "extraction": ["ExtractionEngine", "SourceConfig", "SourceType"],
-    "gates": ["GateDecision", "GateStatus", "evaluate_gate"],
-    "incremental": ["IncrementalFileExtractionEngine", "JsonWatermarkStore"],
-    "loading": ["IdempotentSqliteLoader", "ReplayConflict"],
-    "pipeline": ["GovernedPipeline", "PipelineConfig", "PipelineRun"],
-    "profiling": ["profile_data"],
-    "validation": ["validate_fields", "validate_schema"],
-}
-__all__ = [name for names in _EXPORTS.values() for name in names]
-
+"""Compatibility namespace; new code uses governed_data_pipeline."""
+import governed_data_pipeline as _implementation
+__version__ = _implementation.__version__
+__all__ = _implementation.__all__
 
 def __getattr__(name):
-    for module, names in _EXPORTS.items():
-        if name in names:
-            value = getattr(import_module("." + module, __name__), name)
-            globals()[name] = value
-            return value
-    raise AttributeError(name)
+    if name == "CleaningEngine":
+        from .cleaning import CleaningEngine
+        return CleaningEngine
+    return getattr(_implementation, name)

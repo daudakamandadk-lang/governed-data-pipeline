@@ -1,24 +1,24 @@
 """Small synthetic demonstration of DQ checks and a quality gate.
 
-The thresholds below are illustrative only; they are not lending policy.
+The thresholds below are illustrative choices for this exercise.
 """
 
 import pandas as pd
-from credit_risk_pipeline.dq import field,run_dq_checks,dimension_score
-from credit_risk_pipeline.gates import evaluate_gate
+from governed_data_pipeline.dq import field,run_dq_checks,dimension_score
+from governed_data_pipeline.gates import evaluate_gate
 
 data=pd.DataFrame({
-    "application_id":["A001","A002","A003"],
-    "requested_amount":[1200,-50,800],
-    "product_type":["Personal Loan","Mortgage","Personal Loan"]
+    "order_id":["O001","O002","O003"],
+    "total":[1200,-50,800],
+    "product_type":["Hardware","Office","Hardware"]
 })
 
 schema={
-    "application_id":field(required=True,unique=True),
-    "requested_amount":field(required=True,min_value=0),
+    "order_id":field(required=True,unique=True),
+    "total":field(required=True,min_value=0),
     "product_type":field(
         required=True,
-        allowed=["Personal Loan","Mortgage","Asset Finance"]
+        allowed=["Hardware","Office","Kitchen"]
     )
 }
 
