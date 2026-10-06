@@ -1,36 +1,25 @@
 # Roadmap
 
-The current milestone is a reusable, executable CSV-to-SQLite workflow. It packages the learning implementation with independent engines, governed orchestration and explicit limits.
+## Implemented foundation
 
-## Delivered workflow
+- Independent file extraction, profiling, typed validation, cleaning, record gates, transformation and loading.
+- Connected CSV-to-SQLite orchestration with before/after quality evidence, durable quarantine, reconciliation and deferred JSON progress.
+- Read-only SQLite snapshots and append-only composite cursor extraction.
+- Explicit SQLite trigger capture for inserts, updates and deletes.
+- Related-table snapshot bootstrap and strict change consumption, with successful target changes, evidence, event ledger and checkpoint committed together.
+- Replay, drift and failure-boundary verification using temporary synthetic inputs.
 
-- File extraction and independent profiling.
-- Declared types, completeness, validity, uniqueness, conditional relationships and reference checks.
-- Deterministic cleaning with correction history.
-- Post-cleaning dispositions and configurable batch gates.
-- Durable events, quarantine observations and corrections.
-- Insert-once SQLite loading with identical replay and conflict rollback.
-- Current-batch reconciliation of rows, keys, values, totals and observed files.
-- Deferred JSON progress commitment and bounded retries.
-- Synthetic scenarios and direct-engine examples.
-- Compatibility for original field-score DQ and gate APIs.
+This is a generic data-engineering project. Domain-specific generators, risk estimates, decisions, features and ML are outside its scope.
 
-The incremental case remains small append-only CSVs with unique increasing integer watermarks and one writer.
+## Next engineering work
 
-## Next hardening priorities
+1. Study and reproduce the implemented failure cases and engine interfaces.
+2. Design reviewed quarantine release and historical reprocessing.
+3. Establish schema migration procedures and stronger historical target audits.
+4. Introduce bounded extraction, transaction-aware event batching and retention policies before handling large datasets.
+5. Add database/API adapters where concrete source requirements justify them.
+6. Address concurrent writers, scheduling, operations and deployment after Python behavior is stable.
 
-1. Define and test historical correction/reprocessing, quarantine release and effects on target values/progress.
-2. Strengthen recovery around separate SQLite and JSON stores, including incomplete journal finalization.
-3. Extend reconciliation where a justified use case requires historical or cross-table evidence.
-4. Improve large-file resource use without weakening ordering, source integrity or audit guarantees.
-5. Broaden examples and failure coverage as contracts and transformations grow.
+PostgreSQL logical replication/WAL CDC, API extraction, remote databases, production scheduling and streaming are planned. The present CDC implementation is local SQLite trigger capture with retained history and whole-state checks.
 
-These are future work. Database extraction, CDC, deletes, late arrivals, composite watermarks and concurrent execution are outside this milestone.
-
-## Wider project context
-
-Curated data can support later feature engineering, statistics and PD/LGD/EAD or machine-learning work in the wider credit-risk project. Those capabilities belong to their own components. This package does not estimate risk or make lending decisions.
-
-Public/reference inputs retain provenance and usage limits. Foreign or historical datasets do not establish current Uganda credit behavior.
-
-See [architecture](architecture.md), [migration](migration.md) and [public reference data](../data/public/README.md).
+See [architecture](architecture.md), [database/CDC](database_cdc.md) and [operating boundaries](../README.md#operating-boundaries).
