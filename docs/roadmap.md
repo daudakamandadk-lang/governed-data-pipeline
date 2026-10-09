@@ -13,6 +13,10 @@ This is a generic data-engineering project. Domain-specific generators, risk est
 
 ## Next engineering work
 
+The [Generic Analysis Engine WIP](generic_analysis_engine.md) starts a separate,
+opt-in downstream analysis layer. Its design captures the wider sequence from
+governed pipeline to generic analysis to a later, external domain engine.
+
 1. Study and reproduce the implemented failure cases and engine interfaces.
 2. Design reviewed quarantine release and historical reprocessing.
 3. Establish schema migration procedures and stronger historical target audits.
