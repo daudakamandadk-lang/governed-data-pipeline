@@ -2,7 +2,14 @@
 
 A modular Python data-engineering pipeline with working CSV and local SQLite workflows. Profiling, validation, cleaning, record routing, transformation and loading can run independently. Orchestration connects them with quality evidence, reconciliation and controlled progress advancement.
 
-Version 0.3.0 adds read-only database extraction, composite cursors and explicit SQLite trigger-based change capture. This public project contains generic engineering components and neutral synthetic demonstrations. Domain-specific generation, analysis and modelling belong to separate projects.
+Version 0.3.0 adds read-only database extraction, composite cursors and explicit SQLite trigger-based change capture. This public project contains generic engineering components and neutral synthetic demonstrations. Domain-specific generation, interpretation and modelling belong to separate projects.
+
+An opt-in **Generic Analysis Engine (WIP)** now begins domain-neutral exploratory
+analysis after an approved pipeline snapshot. It provides role inference,
+descriptive statistics, skew/correlation checks, group/time hooks and suggested
+next investigations. See the [design and roadmap](docs/generic_analysis_engine.md)
+and [synthetic example](examples/generic_analysis_demo.py). Visualization and automatic
+pipeline integration remain planned; results do not make domain decisions.
 
 ## Start with the CSV example
 

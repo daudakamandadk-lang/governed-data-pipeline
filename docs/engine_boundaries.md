@@ -18,6 +18,7 @@ Combining engines in a workflow is appropriate when each component keeps a clear
 | `audit`, `values` | Persist CSV run evidence and convert/hash supported audit values |
 | `pipeline` | Order CSV stages, retry selected failures and commit file progress |
 | `database_pipeline` | Connect snapshots/changes, related-state checks and atomic target progress |
+| `generic_analysis` (WIP) | Describe caller-approved snapshots and suggest analytical investigations; no pipeline state or domain decisions |
 
 `contracts` contains shared result/issue types. Engines do not depend on the CLI or another project's notebook paths. The public package can be installed and imported independently.
 
