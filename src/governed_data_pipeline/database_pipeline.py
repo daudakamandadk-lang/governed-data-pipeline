@@ -2,7 +2,7 @@
 
 Business changes, successful evidence and the consumed source sequence commit
 in ONE target SQLite transaction. Source capture is explicitly installed by a
-caller. This is a small local database lesson, not an external exactly-once or
+caller. This local SQLite workflow does not provide external exactly-once or
 PostgreSQL/WAL replication claim.
 """
 

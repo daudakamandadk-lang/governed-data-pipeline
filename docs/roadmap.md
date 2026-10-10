@@ -9,11 +9,12 @@
 - Related-table snapshot bootstrap and strict change consumption, with successful target changes, evidence, event ledger and checkpoint committed together.
 - Replay, drift and failure-boundary verification using temporary synthetic inputs.
 
-This is a generic data-engineering project. Domain-specific generators, risk estimates, decisions, features and ML are outside its scope.
+The package focuses on generic data engineering. Domain-specific generation,
+analytics, modelling and application decisions belong to consuming projects.
 
 ## Next engineering work
 
-1. Study and reproduce the implemented failure cases and engine interfaces.
+1. Maintain interface compatibility and extend failure-boundary verification as workflows evolve.
 2. Design reviewed quarantine release and historical reprocessing.
 3. Establish schema migration procedures and stronger historical target audits.
 4. Introduce bounded extraction, transaction-aware event batching and retention policies before handling large datasets.

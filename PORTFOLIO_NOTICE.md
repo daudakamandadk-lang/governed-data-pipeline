@@ -1,8 +1,8 @@
-# Portfolio Notice
+# Project Notice
 
 Copyright © 2026 Dauda Kamanda.
 
-This repository is an independent educational and professional portfolio project.
+This repository is an independent software project for governed data processing.
 
 It is not an employer/client project, is not affiliated with or endorsed by any employer, and is not intended to contain confidential or proprietary operational data.
 

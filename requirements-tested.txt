@@ -1,4 +1,4 @@
-# Reference verification environment; not a cross-platform lock file.
-# Python 3.12.14; regression suite also checked on Python 3.14.6.
-numpy==2.3.5
-pandas==3.0.1
+# Reference verification environment: Python 3.14 (tested with 3.14.6).
+# Direct dependency pins, not a complete transitive lock file.
+numpy==2.5.3
+pandas==3.0.6

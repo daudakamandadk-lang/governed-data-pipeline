@@ -1,4 +1,4 @@
-"""Behavior and failure-boundary coverage for the connected learning workflow."""
+"""Behavior and failure-boundary coverage for the connected CSV workflow."""
 
 from contextlib import closing, redirect_stdout
 from dataclasses import replace

@@ -24,4 +24,4 @@ Successful business changes, quality evidence, the consumed-event ledger and che
 
 Strict quality stops preserve business tables and progress while recording stopped-run evidence. Exceptions attempt a separate failure audit after rollback. Neither path silently releases quarantined records or modifies source data.
 
-These checks support the local single-writer lesson. They do not establish external source accuracy, exact-currency arithmetic, cross-system distributed transactions or protection against every coordinated tampering scenario.
+These checks support local single-writer workflows. They do not establish external source accuracy, exact-currency arithmetic, cross-system distributed transactions or protection against every coordinated tampering scenario.

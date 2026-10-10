@@ -1,79 +1,44 @@
-# AGENTS.md
+# Repository guidance
 
-## Project identity
+## Scope
 
-This repository is the public, standalone data-engineering portfolio project.
+`governed-data-pipeline` is a standalone Python package for reusable data
+engineering. Its supported namespace is `governed_data_pipeline`. Keep the
+package independent of notebooks, datasets and consuming applications.
 
-Repository name:
-`governed-data-pipeline`
+In scope: extraction, profiling, typed validation, cleaning, transformation,
+reconciliation, record routing, loading, orchestration, progress and run
+evidence. Domain-specific generation, analytics, modelling and application
+decisions belong in consumers.
 
-The project is a reusable governed data pipeline and should not be framed as a credit-risk-specific pipeline.
+## Architecture and compatibility
 
-## Architecture direction
+- Keep engines independently usable. Orchestration controls stage ordering,
+  policy and progress; engines implement focused operations.
+- Preserve documented CSV and database transaction boundaries. Advance progress
+  only after successful downstream reconciliation and durable evidence.
+- Preserve the score-gate compatibility API. Use explicit `evaluate_score_gate`
+  and `evaluate_record_gate` names for new callers.
+- Require reviewed contracts and explicit source capture installation. Do not
+  silently adapt schemas, target constraints, cursors or trigger definitions.
+- Describe implemented behaviour accurately and mark future work as planned.
+  Do not imply remote CDC, streaming, concurrency or production guarantees.
 
-The target pipeline is:
+## Development and verification
 
-```text
-Sources
-  -> Extraction
-     - full-file
-     - chunked
-     - incremental
-     - database
-     - API
-     - CDC
-  -> Profiling
-  -> Validation
-  -> Cleaning
-  -> Revalidation
-  -> Transformation
-  -> Reconciliation
-  -> Classification / Routing
-     - accepted
-     - corrected
-     - quarantined
-     - rejected
-  -> Loading
-  -> Audit / Run Evidence
-```
+Edit source, tests and documentation in this repository. Use an editable
+installation for development; exported copies and installed wheels are not
+alternate development homes. Follow [CONTRIBUTING.md](CONTRIBUTING.md).
 
-## Portfolio intent
+Use focused tests for affected behaviour, including replay and failure boundaries
+where state changes. Run the full suite and publication scan before proposing
+a package change. Update relevant contracts, configuration or recovery guidance
+when externally visible behaviour changes.
 
-The public repository should present a professional, integrated data-engineering story. Keep components modular, but connect them through orchestration so the repository demonstrates an end-to-end governed pipeline rather than unrelated scripts.
+## Data policy
 
-Do not add credit-risk modelling, feature engineering, scoring, or ML-specific logic here. Those belong to the separate private project.
-
-## Current development priorities
-
-1. Preserve the existing profiler, cleaning and loading work.
-2. Add and integrate extraction patterns.
-3. Complete validation, cleaning, transformation, reconciliation and routing boundaries.
-4. Add run state, run IDs, audit evidence and exception handling.
-5. Add an end-to-end orchestrated example.
-6. Add tests and clear architecture documentation.
-7. Add production tooling such as Docker/orchestration/CI only after the Python pipeline is stable.
-
-## Working style
-
-- Develop this package's generic engines, tests and documentation in this
-  checkout. Ignored staging/export copies in consuming projects are historical
-  snapshots, not development homes.
-- Private learning modules may have different contracts. Assess shared fixes in
-  each affected project and verify its behaviour rather than syncing source trees.
-- Keep the retained score-gate API compatible. Use explicit
-  `evaluate_score_gate` and `evaluate_record_gate` names for new callers.
-
-- Prefer small, understandable modules over a single large pipeline file.
-- Keep orchestration thin; business logic belongs in engines/components.
-- Do not claim a capability in README/docs until it is actually implemented or clearly marked planned.
-- Preserve a professional public surface: no bundled datasets or domain source catalogue. Neutral synthetic fixtures are generated locally only on explicit demonstration runs and stay ignored.
-
-## Repository boundaries
-
-Only `src/governed_data_pipeline/` is a supported package. Domain-specific source
-datasets, defaults, generation, statistical exploration and analytics windows
-belong to separate consuming projects. The statistical exploration lab is a
-separate component and must not be placed inside extraction or profiling engines.
-Profiling here provides descriptive data-quality evidence for pipeline runs.
-A pristine checkout contains no data directory. Keep caller-owned inputs,
-generated demonstrations and their run evidence local and excluded from Git.
+Do not bundle datasets, credentials, production connection strings or generated
+run evidence. Explicit demonstrations may generate neutral synthetic fixtures
+locally in ignored paths. Callers own input provenance and permissions.
+Profiling provides observed data-quality evidence; it does not establish source
+accuracy or ownership. See [SECURITY.md](SECURITY.md).

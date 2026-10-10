@@ -1,4 +1,4 @@
-"""Small scalar/JSON helpers shared by the learning audit and database stages."""
+"""Scalar and JSON helpers shared by audit and database stages."""
 
 from datetime import date, datetime
 import hashlib

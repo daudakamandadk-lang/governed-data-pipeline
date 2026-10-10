@@ -1,4 +1,4 @@
-"""A connected, synthetic-only classroom example; initializes samples if absent."""
+"""A connected pipeline demonstration; generates synthetic inputs only if absent."""
 
 import argparse
 from dataclasses import asdict, replace

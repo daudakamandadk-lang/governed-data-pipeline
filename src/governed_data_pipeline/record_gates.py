@@ -1,4 +1,4 @@
-"""Record dispositions and batch quality gates for cleaned learning batches.
+"""Record dispositions and batch quality gates for cleaned batches.
 
 classify_records() decides, per record, whether it passes, was corrected, is
 quarantined or is rejected, always with explicit reasons. Cleaner issue codes

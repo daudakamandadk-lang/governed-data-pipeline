@@ -1,7 +1,7 @@
-"""Learning prototype: CSV extraction with separately committed JSON progress.
+"""CSV extraction with separately committed JSON progress.
 
-Reads the whole CSV before filtering. Numeric increasing IDs are the first
-exercise; strings compare lexically, not as parsed timestamps. State is keyed
+Reads the whole CSV before filtering. Numbers compare numerically;
+strings compare lexically, not as parsed timestamps. State is keyed
 by basename: use distinct filenames and one writer per store. Late rows at or
 below the watermark, deletes and composite watermarks remain future work.
 The connected governed example supplies replay-safe loading separately.

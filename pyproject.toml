@@ -5,10 +5,15 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "governed-data-pipeline"
 version = "0.3.0"
-description = "Modular data-quality engines with governed CSV and SQLite change-capture workflows"
+description = "Contract-driven data-quality engines and governed CSV and SQLite workflows"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = ["numpy>=1.24,<3", "pandas>=2.2,<4"]
+
+[project.urls]
+Repository = "https://github.com/daudakamandadk-lang/governed-data-pipeline"
+Documentation = "https://github.com/daudakamandadk-lang/governed-data-pipeline/blob/main/docs/README.md"
+Issues = "https://github.com/daudakamandadk-lang/governed-data-pipeline/issues"
 
 [project.optional-dependencies]
 file-formats = ["openpyxl>=3.1", "pyarrow>=15"]

@@ -1,7 +1,7 @@
-"""Insert-once SQLite loading and key/value/total reconciliation for learning.
+"""Insert-once SQLite loading and key/value/total reconciliation.
 
 An existing key with identical values is a replay; changed values are a conflict,
-not an update. Updates and deletes require a later change-processing policy.
+not an update. Updates and deletes use the separate SQLite change loader.
 """
 
 from contextlib import closing
@@ -60,7 +60,7 @@ class IdempotentSqliteLoader:
             if column in schema["columns"]:
                 result[column] = mapping.get(schema["columns"][column]["dtype"], "TEXT")
             else:
-                # Derived fields in this learning transformer are text bands.
+                # Derived fields from the band transformer are text labels.
                 result[column] = "TEXT"
         return result
 

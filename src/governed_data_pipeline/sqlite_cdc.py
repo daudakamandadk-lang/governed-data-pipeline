@@ -2,7 +2,7 @@
 
 This journal is not PostgreSQL logical or WAL CDC. Selected tables must keep
 their declared schema and installed triggers. All available committed events
-are read together; this small-database lesson deliberately has no event limit.
+are read together; there is no bounded event limit.
 """
 
 from contextlib import closing

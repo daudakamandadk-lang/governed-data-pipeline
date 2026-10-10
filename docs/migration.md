@@ -1,8 +1,10 @@
-# Migration Notes: Version 0.3.0 and repository separation
+# Migration notes
 
-The public project is now named `governed-data-pipeline` and its primary import namespace is `governed_data_pipeline`. It provides reusable engineering components with neutral synthetic examples. No wider-project notebooks, generated foundation tables or domain-specific rules are runtime dependencies.
+The package is `governed-data-pipeline` and its supported import namespace is
+`governed_data_pipeline`. The following notes cover import compatibility and
+workflow/state changes for existing callers.
 
-## Imports and retired compatibility namespace (2026-10-10)
+## Imports and retired compatibility namespace
 
 Use new imports for new work:
 
@@ -13,9 +15,13 @@ from governed_data_pipeline.validation import validate_fields
 from governed_data_pipeline.pipeline import GovernedPipeline, PipelineConfig
 ```
 
-The former `credit_risk_pipeline` compatibility namespace has been removed. Update imports to `governed_data_pipeline`. Existing generic profiler functions, flat DQ helpers, score gates, file-reader contracts and pipeline planning helpers remain available in that package. Cleaning requires an explicit schema; implicit domain-specific defaults are retired. Domain lessons and source datasets belong to the consuming private project. This separation does not claim a new release.
+The former `credit_risk_pipeline` compatibility namespace has been removed.
+Update imports to `governed_data_pipeline`. Generic profiler functions, flat
+DQ helpers, score gates, file-reader contracts and pipeline planning helpers
+remain available. Cleaning requires an explicit schema; implicit defaults are
+retired. Package metadata remains at version 0.3.0.
 
-```powershell
+```bash
 python -m governed_data_pipeline --scenario clean
 python -m governed_data_pipeline.database_demo --action bootstrap
 ```
@@ -42,6 +48,15 @@ from governed_data_pipeline import GateThresholds, evaluate_record_gate, evaluat
 
 ## State and migration boundaries
 
-The checkout contains no data directory, bundled reference data or domain source catalogue. Running the primary generic CSV demo explicitly generates neutral `customer_id`, `active` and `order_date` fixtures beneath ignored `data/local/governed_demo_v3/` folders. The database demonstration likewise generates neutral customers/orders fixtures only when run. Existing local generic demonstration inputs are preserved by those commands. Old domain demonstration fields and folders are no longer supported. Use new reviewed job/state locations for changed source layouts or target constraints; do not reuse old checkpoints for a different source contract. The loader does not silently alter constraints, and capture verification rejects schema or trigger drift.
+The checkout bundles no input datasets. The CSV demo generates neutral
+`customer_id`, `active` and `order_date` fixtures beneath ignored
+`data/local/governed_demo_v3/` folders. The database demo generates customers/orders
+fixtures when run. Both preserve existing local demonstration inputs.
+
+Older demonstration layouts and folders are not supported. Use new reviewed
+job/state locations for changed source layouts or target constraints; do not
+reuse an old checkpoint for a different source contract. The loader does not
+silently alter constraints, and capture verification rejects schema or trigger
+drift.
 
 SQLite database progress belongs to the target transaction. CSV JSON progress remains separate. Do not interchange those checkpoints or infer that an append-only CSV loader can replay updates/deletes. See [reconciliation](reconciliation.md#replay-behavior) and [database/CDC](database_cdc.md).

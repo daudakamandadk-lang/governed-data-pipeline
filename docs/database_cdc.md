@@ -1,6 +1,6 @@
 # Local SQLite Extraction and Change Capture
 
-The database implementation teaches a consistent snapshot handoff and governed change consumption using local SQLite files. It works with declared related tables and one pipeline writer. Source and target paths must differ.
+The database workflow provides consistent snapshot handoff and governed change consumption using local SQLite files. It works with declared related tables and one pipeline writer. Source and target paths must differ.
 
 ## Extraction interfaces
 
@@ -12,7 +12,7 @@ The cursor follows SQLite storage ordering. Date/timestamp bounds must be exact 
 
 ## Capture installation
 
-`SqliteChangeCapture(source_path, schemas).install()` explicitly writes capture metadata, an event journal and insert/update/delete triggers into an existing source. It does not create business data. Installation belongs on a mutable demonstration source, separate from an immutable reference export.
+`SqliteChangeCapture(source_path, schemas).install()` explicitly writes capture metadata, an event journal and insert/update/delete triggers into an existing source. It does not create business data. Installation requires a mutable source and permission to modify its capture metadata and triggers. Use a separate local source when the original export must remain immutable.
 
 Triggers record ordered sequences, table/operation, old/new keys and old/new row images in the same source transaction as the business changes. Capture checks verify source identity, installed trigger definitions, schema fingerprints and journal continuity. Source rollback also rolls back its captured events.
 
@@ -39,9 +39,9 @@ Change consumption reads pending events and a consistent current source snapshot
 
 Successful changes, quality evidence, consumed-event fingerprints and the checkpoint commit in one target transaction. Invalid state returns `stopped` with target business rows/checkpoint unchanged. Exceptions roll back and attempt separate failure recording. An error after a verified commit can return the durable result with `recovered_after_commit=True`.
 
-## Practice sequence and limits
+## Demonstration and limits
 
-```powershell
+```bash
 python -m governed_data_pipeline.database_demo --action bootstrap
 python -m governed_data_pipeline.database_demo --action mutate
 python -m governed_data_pipeline.database_demo --action changes

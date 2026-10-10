@@ -1,4 +1,4 @@
-"""Learning cleaner for schema-guided, non-destructive field normalization."""
+"""Schema-guided field normalization that preserves original values."""
 
 from .contracts import CleaningCorrection, CleaningIssue, CleaningResult
 from datetime import date, datetime

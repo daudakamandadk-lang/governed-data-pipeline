@@ -1,4 +1,4 @@
-"""Connected learning orchestration through quality gates, durable load and commit.
+"""CSV orchestration through quality gates, durable loading and progress commit.
 
 One append-only CSV job, one writer, increasing integer watermarks. Related-table
 database processing and change capture are coordinated by database_pipeline.
@@ -118,7 +118,7 @@ class GovernedPipeline:
         if type(config.max_attempts) is not int or not 1 <= config.max_attempts <= 5:
             raise ValueError("max_attempts must be an integer between 1 and 5")
         if config.schema["columns"].get(config.watermark_column, {}).get("dtype") != "integer":
-            raise ValueError("This incremental learning job requires an integer watermark field")
+            raise ValueError("This incremental job requires an integer watermark field")
         if not config.schema["columns"][config.watermark_column].get("required"):
             raise ValueError("The watermark field must be required")
         if config.watermark_column != config.schema["primary_key"] and not config.schema["columns"][config.watermark_column].get("unique"):

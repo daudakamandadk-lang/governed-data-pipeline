@@ -1,4 +1,4 @@
-"""Reusable engines and a connected CSV-to-SQLite learning workflow."""
+"""Reusable data-quality engines and governed CSV-to-SQLite workflows."""
 from importlib import import_module
 
 __version__ = "0.3.0"
