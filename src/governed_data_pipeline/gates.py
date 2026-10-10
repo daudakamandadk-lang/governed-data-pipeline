@@ -34,3 +34,7 @@ def evaluate_gate(score, pass_threshold, warn_threshold):
 
 def can_continue(decision, allow_warning=True):
     return decision.status != GateStatus.STOP and (allow_warning or decision.status != GateStatus.WARN)
+
+
+# Prefer the explicit name for new callers; keep the original callable unchanged.
+evaluate_score_gate = evaluate_gate

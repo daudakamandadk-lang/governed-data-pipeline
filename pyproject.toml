@@ -20,8 +20,7 @@ governed-database = "governed_data_pipeline.database_demo:cli"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+include = ["governed_data_pipeline*"]
 
 [tool.setuptools.package-data]
-credit_risk_pipeline = ["demo_config.json"]
-
 governed_data_pipeline = ["demo_config.json"]

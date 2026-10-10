@@ -1,4 +1,4 @@
-"""Generic identity, compatibility and public database demonstration."""
+"""Generic public interfaces and database demonstration."""
 from contextlib import redirect_stdout, closing
 import io
 import json
@@ -46,30 +46,24 @@ class GenericDemoTests(unittest.TestCase):
                 main(["--config", str(path), "--action", "mutate"])
             self.assertFalse(config.source_path.exists())
 
-    def test_deprecated_cleaner_extends_primary_engine(self):
+    def test_primary_export_and_generic_sample_columns(self):
         from governed_data_pipeline import CleaningEngine, __version__
-        from credit_risk_pipeline import CleaningEngine as old_engine
-        from credit_risk_pipeline.cleaning import CleaningEngine as old_submodule_engine
-        self.assertTrue(issubclass(old_engine, CleaningEngine))
-        self.assertIs(old_engine, old_submodule_engine)
+        from governed_data_pipeline.cleaning import CleaningEngine as submodule_engine
+        from governed_data_pipeline.demo import sample_transactions
+        self.assertIs(CleaningEngine, submodule_engine)
         self.assertEqual(__version__, "0.3.0")
-        from governed_data_pipeline.demo import sample_transactions, example_config
-        from credit_risk_pipeline.demo import sample_transactions as old_sample
-        self.assertIn("customer_id", sample_transactions().columns)
-        self.assertNotIn("applicant_id", sample_transactions().columns)
-        self.assertIn("applicant_id", old_sample().columns)
+        self.assertEqual(set(sample_transactions().columns),
+                         {"transaction_id", "customer_id", "amount", "active", "order_date", "snapshot_date"})
 
-    def test_primary_cleaner_requires_schema_and_legacy_default_still_works(self):
+    def test_primary_cleaner_requires_explicit_schema_and_preserves_evidence(self):
         from governed_data_pipeline import CleaningEngine
-        from credit_risk_pipeline import CleaningEngine as old_engine
-        data = pd.DataFrame({"applicant_id": [" AP00001 "]})
+        data = pd.DataFrame({"customer_id": [" C00001 "]})
+        snapshot = data.copy(deep=True)
         with self.assertRaisesRegex(ValueError, "explicit schema"):
             CleaningEngine().clean(data)
-        with self.assertRaisesRegex(ValueError, "applicant_id"):
-            old_engine().clean(pd.DataFrame({"id": [" C1 "]}))
-        legacy = old_engine().clean(data)
-        schema = {"columns": {"applicant_id": {"dtype": "string"}}}
-        explicit = CleaningEngine().clean(data, schema)
-        pd.testing.assert_frame_equal(legacy.data, explicit.data)
-        self.assertEqual(legacy.data.loc[0, "applicant_id"], "AP00001")
-        self.assertEqual(legacy.corrections, explicit.corrections)
+        schema = {"columns": {"customer_id": {"dtype": "string"}}}
+        cleaned = CleaningEngine().clean(data, schema)
+        pd.testing.assert_frame_equal(data, snapshot)
+        self.assertEqual(cleaned.data.loc[0, "customer_id"], "C00001")
+        self.assertEqual(cleaned.corrected_cells, 1)
+        self.assertEqual(cleaned.corrections[0].original_value, " C00001 ")

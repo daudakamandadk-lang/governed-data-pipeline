@@ -54,7 +54,7 @@
         "left": "order_date",
         "operator": "le",
         "right": "snapshot_date",
-        "code": "application_after_snapshot"
+        "code": "order_after_snapshot"
       },
       {
         "left": "snapshot_date",

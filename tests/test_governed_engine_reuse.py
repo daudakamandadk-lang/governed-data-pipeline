@@ -10,10 +10,10 @@ import unittest
 
 import pandas as pd
 
-from credit_risk_pipeline.cleaning import CleaningEngine
-from credit_risk_pipeline.loading import IdempotentSqliteLoader, ReplayConflict
-from credit_risk_pipeline.profiling import profile_data
-from credit_risk_pipeline.validation import validate_fields, validate_schema
+from governed_data_pipeline.cleaning import CleaningEngine
+from governed_data_pipeline.loading import IdempotentSqliteLoader, ReplayConflict
+from governed_data_pipeline.profiling import profile_data
+from governed_data_pipeline.validation import validate_fields, validate_schema
 
 
 def schema():

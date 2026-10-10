@@ -243,3 +243,7 @@ def evaluate_gate(dispositions, thresholds=None, *, batch_failures=()):
         reasons=reasons,
         proceeding=counts["pass"] + counts["corrected"],
     )
+
+
+# Prefer the explicit name for new callers; existing orchestration keeps its API.
+evaluate_record_gate = evaluate_gate

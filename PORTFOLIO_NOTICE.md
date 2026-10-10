@@ -8,4 +8,4 @@ It is not an employer/client project, is not affiliated with or endorsed by any 
 
 The software is licensed under the MIT License. Third-party datasets, documentation and references remain subject to their own licences and terms.
 
-This work is under active development and must not be used as a production lending, underwriting or financial-decision system.
+This framework is under active development. Production use requires additional design, security review and verification for the intended data system. The repository contains no bundled datasets; callers own their input provenance and usage permissions.

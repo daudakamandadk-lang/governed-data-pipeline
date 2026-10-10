@@ -45,7 +45,5 @@ artifacts/
 models/
 
 # Data policy
-# Keep generated/private working data out of Git; allow documented public reference data.
-data/*
-!data/public/
-!data/public/**
+# Caller-owned inputs, generated fixtures, outputs and checkpoints stay local.
+/data/

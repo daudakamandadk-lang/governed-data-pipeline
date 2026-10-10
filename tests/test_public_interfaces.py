@@ -1,4 +1,4 @@
-"""Public API compatibility and independent engine use."""
+"""Public APIs and independent engine use."""
 from contextlib import redirect_stdout
 import io
 from pathlib import Path
@@ -7,17 +7,74 @@ import tempfile
 import unittest
 import pandas as pd
 
-from credit_risk_pipeline.cleaning import CleaningEngine
-from credit_risk_pipeline.dq import dimension_score, field, run_dq_checks
-from credit_risk_pipeline.gates import GateStatus, can_continue, evaluate_gate
-from credit_risk_pipeline.incremental import IncrementalFileExtractionEngine, JsonWatermarkStore
-from credit_risk_pipeline.loading import IdempotentSqliteLoader
-from credit_risk_pipeline.pipeline import stage_plan, stop_required
-from credit_risk_pipeline.profiling import profile_data, profile_date
-from credit_risk_pipeline.validation import validate_fields
+import governed_data_pipeline as public_api
+from governed_data_pipeline.cleaning import CleaningEngine
+from governed_data_pipeline.dq import dimension_score, field, run_dq_checks
+from governed_data_pipeline.gates import GateStatus, can_continue, evaluate_gate, evaluate_score_gate
+from governed_data_pipeline.incremental import IncrementalFileExtractionEngine, JsonWatermarkStore
+from governed_data_pipeline.loading import IdempotentSqliteLoader
+from governed_data_pipeline.pipeline import stage_plan, stop_required
+from governed_data_pipeline.profiling import profile_data, profile_date
+from governed_data_pipeline.record_gates import (
+    GateThresholds,
+    RecordDisposition,
+    evaluate_gate as legacy_record_gate,
+    evaluate_record_gate,
+)
+from governed_data_pipeline.validation import validate_fields
 
 
-class CompatibilityTests(unittest.TestCase):
+class PublicInterfaceTests(unittest.TestCase):
+    def test_explicit_gate_names_preserve_original_callables(self):
+        self.assertIs(evaluate_score_gate, evaluate_gate)
+        self.assertIs(public_api.evaluate_gate, evaluate_gate)
+        self.assertIs(public_api.evaluate_score_gate, evaluate_score_gate)
+        self.assertIs(evaluate_record_gate, legacy_record_gate)
+        self.assertIs(public_api.evaluate_record_gate, evaluate_record_gate)
+        self.assertIs(public_api.GateThresholds, GateThresholds)
+        self.assertIsNot(evaluate_score_gate, evaluate_record_gate)
+
+    def test_explicit_score_gate_keeps_decisions_and_threshold_validation(self):
+        for score, status in ((.9, GateStatus.PASS), (.7, GateStatus.WARN), (.4, GateStatus.STOP)):
+            with self.subTest(score=score):
+                decision = public_api.evaluate_score_gate(score, pass_threshold=.9, warn_threshold=.7)
+                self.assertEqual(decision.status, status)
+                self.assertEqual(decision.score, score)
+        with self.assertRaises(ValueError):
+            public_api.evaluate_score_gate(.8, pass_threshold=.7, warn_threshold=.9)
+
+    def test_explicit_record_gate_keeps_rates_and_structural_stops(self):
+        records = [RecordDisposition(0, "a", "pass"), RecordDisposition(1, "b", "quarantine")]
+        for thresholds, outcome in (
+            (GateThresholds(max_quarantine_rate=.5), "pass"),
+            (GateThresholds(max_quarantine_rate=.5, warn_quarantine_rate=0), "warn"),
+            (GateThresholds(), "stop"),
+        ):
+            with self.subTest(outcome=outcome):
+                decision = public_api.evaluate_record_gate(records, thresholds)
+                self.assertEqual(decision.outcome, outcome)
+                self.assertEqual(decision.total, 2)
+                self.assertEqual(decision.rates["quarantine"], .5)
+                self.assertEqual(decision.proceeding, 1)
+        structural = public_api.evaluate_record_gate(
+            [], GateThresholds(max_reject_rate=1, max_quarantine_rate=1),
+            batch_failures=["missing_required_column:id"],
+        )
+        self.assertEqual(structural.outcome, "stop")
+        self.assertEqual(structural.total, 0)
+        self.assertEqual(structural.reasons, ["missing_required_column:id"])
+
+    def test_explicit_record_gate_keeps_threshold_validation(self):
+        for thresholds in (
+            GateThresholds(max_reject_rate=None),
+            GateThresholds(max_quarantine_rate=True),
+            GateThresholds(max_quarantine_rate=float("nan")),
+            GateThresholds(max_quarantine_rate=.2, warn_quarantine_rate=.5),
+        ):
+            with self.subTest(thresholds=thresholds):
+                with self.assertRaises(ValueError):
+                    public_api.evaluate_record_gate([], thresholds)
+
     def test_empty_date_profile_keeps_original_none_sentinel(self):
         result = profile_date(pd.Series([], dtype="datetime64[ns]"))
         self.assertIsNone(result["earliest"])

@@ -5,7 +5,8 @@ __version__ = "0.3.0"
 _EXPORTS = {
     "cleaning": ["CleaningEngine"],
     "extraction": ["ExtractionEngine", "SourceConfig", "SourceType"],
-    "gates": ["GateDecision", "GateStatus", "evaluate_gate"],
+    "gates": ["GateDecision", "GateStatus", "evaluate_gate", "evaluate_score_gate"],
+    "record_gates": ["GateThresholds", "evaluate_record_gate"],
     "incremental": ["IncrementalFileExtractionEngine", "JsonWatermarkStore"],
     "loading": ["IdempotentSqliteLoader", "ReplayConflict"],
     "profiling": ["profile_data"],

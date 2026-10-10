@@ -14,13 +14,13 @@ from unittest.mock import patch
 import numpy as np
 import pandas as pd
 
-from credit_risk_pipeline.cleaning import CleaningEngine
-from credit_risk_pipeline.pipeline import GovernedPipeline, PipelineConfig
-from credit_risk_pipeline.loading import IdempotentSqliteLoader, ReplayConflict
-from credit_risk_pipeline.values import json_text
-from credit_risk_pipeline.record_gates import GateThresholds, evaluate_gate
-from credit_risk_pipeline.demo import example_config, main, sample_transactions
-from credit_risk_pipeline.validation import validate_fields, validate_schema
+from governed_data_pipeline.cleaning import CleaningEngine
+from governed_data_pipeline.pipeline import GovernedPipeline, PipelineConfig
+from governed_data_pipeline.loading import IdempotentSqliteLoader, ReplayConflict
+from governed_data_pipeline.values import json_text
+from governed_data_pipeline.record_gates import GateThresholds, evaluate_gate
+from governed_data_pipeline.demo import example_config, main, sample_transactions
+from governed_data_pipeline.validation import validate_fields, validate_schema
 
 
 def table_schema(columns):
@@ -76,16 +76,16 @@ class FieldRuleTests(unittest.TestCase):
     def test_conditional_consistency_and_null_comparisons(self):
         schema = table_schema({"status": {"dtype": "category"}, "tenure": {"dtype": "integer"}})
         schema["comparisons"] = [{"left": "tenure", "operator": "eq", "value": 0,
-                                   "when": {"column": "status", "equals": "Unemployed"}, "code": "unemployed_tenure"}]
-        frame = pd.DataFrame({"id": [1, 2, 3], "status": ["Unemployed", "Employed", "Unemployed"], "tenure": [5, 10, None]})
+                                   "when": {"column": "status", "equals": "Inactive"}, "code": "inactive_tenure"}]
+        frame = pd.DataFrame({"id": [1, 2, 3], "status": ["Inactive", "Active", "Inactive"], "tenure": [5, 10, None]})
         result = validate_fields(frame, schema)
         self.assertEqual([issue.row_position for issue in result.issues], [0])
 
     def test_reference_presence_and_missing_reference_data(self):
-        schema = table_schema({"applicant_id": {"dtype": "string", "foreign_key": "applicants.applicant_id"}})
-        frame = pd.DataFrame({"id": [1, 2], "applicant_id": ["A1", "A2"]})
-        self.assertEqual(validate_fields(frame, schema).batch_failures, ["reference_unavailable:applicants.applicant_id"])
-        references = {"applicants": pd.DataFrame({"applicant_id": ["A1"]})}
+        schema = table_schema({"customer_id": {"dtype": "string", "foreign_key": "customers.customer_id"}})
+        frame = pd.DataFrame({"id": [1, 2], "customer_id": ["A1", "A2"]})
+        self.assertEqual(validate_fields(frame, schema).batch_failures, ["reference_unavailable:customers.customer_id"])
+        references = {"customers": pd.DataFrame({"customer_id": ["A1"]})}
         result = validate_fields(frame, schema, references)
         self.assertEqual([(issue.row_position, issue.code) for issue in result.issues], [(1, "foreign_key_not_found")])
 
@@ -164,7 +164,7 @@ class GovernedWorkflowTests(unittest.TestCase):
     def test_missing_column_stops_even_for_empty_input(self):
         for empty in (False, True):
             with self.subTest(empty=empty):
-                data = sample_transactions().drop(columns="employed")
+                data = sample_transactions().drop(columns="active")
                 if empty:
                     data = data.iloc[:0]
                 data.to_csv(self.config.source, index=False)
@@ -228,7 +228,7 @@ class GovernedWorkflowTests(unittest.TestCase):
         batch.iloc[1, batch.columns.get_loc("amount")] = 999
         loader = IdempotentSqliteLoader(self.config.database_path)
         # Include the existing target's derived column to keep the schema stable.
-        from credit_risk_pipeline.transformation import BandTransformer, BandRule
+        from governed_data_pipeline.transformation import BandTransformer, BandRule
         batch = BandTransformer("amount", "amount_band", [BandRule(0, 250, "small"), BandRule(250, None, "large")]).transform(batch)
         with self.assertRaises(ReplayConflict):
             loader.load(batch, self.config.target_table, self.config.schema)
@@ -304,42 +304,42 @@ class GovernedWorkflowTests(unittest.TestCase):
 
     def test_string_identifiers_keep_leading_zeroes_and_na_text(self):
         data = sample_transactions()
-        data["applicant_id"] = ["001", "002", "003", "004", "005", "NA"]
+        data["customer_id"] = ["001", "002", "003", "004", "005", "NA"]
         data.to_csv(self.config.source, index=False)
         result = GovernedPipeline(self.config).run()
         self.assertEqual(result.status, "succeeded")
-        self.assertEqual(self.query("SELECT applicant_id FROM transactions ORDER BY transaction_id"),
+        self.assertEqual(self.query("SELECT customer_id FROM transactions ORDER BY transaction_id"),
                          [("001",), ("002",), ("003",), ("004",), ("005",), ("NA",)])
 
     def test_transformation_cannot_overwrite_an_existing_field(self):
-        self.config.transform["derived_column"] = "applicant_id"
+        self.config.transform["derived_column"] = "customer_id"
         with self.assertRaisesRegex(ValueError, "overwrite"):
             GovernedPipeline(self.config).run()
         self.assertFalse(self.config.watermark_path.exists())
 
     def test_unavailable_reference_blocks_loading(self):
-        self.config.schema["columns"]["applicant_id"]["foreign_key"] = "applicants.applicant_id"
+        self.config.schema["columns"]["customer_id"]["foreign_key"] = "customers.customer_id"
         result = GovernedPipeline(self.config).run()
         self.assertEqual(result.status, "stopped")
         self.assertFalse(self.config.watermark_path.exists())
 
     def test_reference_identifiers_and_fingerprints_are_preserved(self):
         frame = sample_transactions()
-        frame["applicant_id"] = ["001", "002", "003", "004", "005", "006"]
+        frame["customer_id"] = ["001", "002", "003", "004", "005", "006"]
         frame.to_csv(self.config.source, index=False)
-        reference = self.config.source.with_name("applicants.csv")
-        frame[["applicant_id"]].to_csv(reference, index=False)
-        self.config.reference_paths = {"applicants": reference}
-        self.config.schema["columns"]["applicant_id"]["foreign_key"] = "applicants.applicant_id"
+        reference = self.config.source.with_name("customers.csv")
+        frame[["customer_id"]].to_csv(reference, index=False)
+        self.config.reference_paths = {"customers": reference}
+        self.config.schema["columns"]["customer_id"]["foreign_key"] = "customers.customer_id"
         self.assertEqual(GovernedPipeline(self.config).run().status, "succeeded")
         lineage = json.loads(self.query("SELECT details FROM etl_events WHERE stage='lineage'")[0][0])
-        self.assertEqual(len(lineage["references"]["applicants"]), 64)
+        self.assertEqual(len(lineage["references"]["customers"]), 64)
 
     def test_reference_change_after_loading_holds_progress(self):
-        reference = self.config.source.with_name("applicants.csv")
-        pd.DataFrame({"applicant_id": [f"A00{number}" for number in range(1, 7)]}).to_csv(reference, index=False)
-        self.config.reference_paths = {"applicants": reference}
-        self.config.schema["columns"]["applicant_id"]["foreign_key"] = "applicants.applicant_id"
+        reference = self.config.source.with_name("customers.csv")
+        pd.DataFrame({"customer_id": [f"A00{number}" for number in range(1, 7)]}).to_csv(reference, index=False)
+        self.config.reference_paths = {"customers": reference}
+        self.config.schema["columns"]["customer_id"]["foreign_key"] = "customers.customer_id"
         pipeline = GovernedPipeline(self.config)
         load = pipeline.loader.load
 
@@ -369,7 +369,7 @@ class GovernedWorkflowTests(unittest.TestCase):
             os.chdir(previous)
 
     def test_invalid_target_and_totals_fail_before_audit_database_creation(self):
-        for config in (replace(self.config, target_table="etl_runs"), replace(self.config, sum_columns=["employed"])):
+        for config in (replace(self.config, target_table="etl_runs"), replace(self.config, sum_columns=["active"])):
             with self.subTest(config=config), self.assertRaises(ValueError):
                 GovernedPipeline(config)
         self.assertFalse(self.config.database_path.exists())

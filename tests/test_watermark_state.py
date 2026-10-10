@@ -4,7 +4,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 import pandas as pd
-import credit_risk_pipeline.incremental as incremental
+import governed_data_pipeline.incremental as incremental
 
 class WatermarkTests(unittest.TestCase):
     def setUp(self):
@@ -44,10 +44,10 @@ class WatermarkTests(unittest.TestCase):
         self.assert_old_state_preserved()
 
     def test_successful_save_preserves_other_sources_and_unicode(self):
-        self.store.save(incremental.WatermarkState("applicants-Ã©.csv", "id", 10))
+        self.store.save(incremental.WatermarkState("customers-Ã©.csv", "id", 10))
         self.store.save(incremental.WatermarkState("sample.csv", "transaction_id", 6))
         self.assertEqual(self.store.load("sample.csv", "transaction_id").last_watermark, 6)
-        self.assertEqual(self.store.load("applicants-Ã©.csv", "id").last_watermark, 10)
+        self.assertEqual(self.store.load("customers-Ã©.csv", "id").last_watermark, 10)
         self.assertEqual(set(self.path.parent.iterdir()), {self.path})
 
     def test_extraction_retries_until_explicit_commit(self):

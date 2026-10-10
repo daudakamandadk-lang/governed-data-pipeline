@@ -13,7 +13,7 @@ This is a public portfolio repository. Confidentiality takes precedence over con
 
 ## Intended data
 
-Use synthetic data and properly documented public sources.
+The public checkout contains no bundled datasets. Supply caller-owned inputs locally through reviewed configuration. Explicit demonstration runs generate small neutral synthetic fixtures in ignored local folders. Record source provenance and permissions in the consuming project; see [source provenance](metadata/README.md).
 
 ## Before publishing
 

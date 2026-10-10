@@ -2,7 +2,7 @@
 
 A modular Python data-engineering pipeline with working CSV and local SQLite workflows. Profiling, validation, cleaning, record routing, transformation and loading can run independently. Orchestration connects them with quality evidence, reconciliation and controlled progress advancement.
 
-Version 0.3.0 adds read-only database extraction, composite cursors and explicit SQLite trigger-based change capture. This public project contains generic engineering components and neutral synthetic demonstrations. Domain-specific generation, analysis and modelling belong to separate projects.
+Version 0.3.0 adds read-only database extraction, composite cursors and explicit SQLite trigger-based change capture. This public project contains generic engineering components and neutral synthetic demonstrations. Domain-specific generation, analysis and modelling belong to separate projects. A pristine checkout contains no data directory or bundled datasets; built-in fixtures are generated locally only when a demonstration is explicitly run.
 
 ## Start with the CSV example
 
@@ -75,17 +75,34 @@ The profiler measures observed data; it does not prove source accuracy. The data
 
 Tests use temporary synthetic inputs and exercise success, replay, drift, invalid changes and failure boundaries. The configured publication scan is a focused repository check.
 
-Verification on **2026-10-06 passed 116 tests** using Python 3.12.14 and pandas
-3.0.1. This is a dated result; rerun the command above for the current checkout.
+Repository separation checks on **2026-10-10 passed all 116 tests** using
+Python 3.14.6, pandas 3.0.6 and NumPy 2.5.3. The privacy scan also passed after
+removing the legacy credit namespace and bundled datasets.
+
+Pre-sync checks on **2026-10-10 passed all 120 tests**, including four new public
+gate-interface compatibility checks, using the same runtime. The privacy scan
+also passed. These are local results; independent hosted CI remains future work.
+
+Rerun these checks for your current checkout and environment after changing engines, contracts or configuration.
 
 - [Architecture](docs/architecture.md) and [independent engines](docs/engine_boundaries.md).
 - [Contracts](docs/data_contracts.md), [gates](docs/data_quality_gates.md) and [reconciliation](docs/reconciliation.md).
 - [Database/CDC](docs/database_cdc.md), [migration](docs/migration.md) and [roadmap](docs/roadmap.md).
 - [Independent usage](examples/independent_engines.py) and [legacy score-gate example](examples/dq_gate_demo.py).
 
-The supported import namespace is `governed_data_pipeline`; `credit_risk_pipeline` remains a thin compatibility namespace. The package runs without the wider project's notebooks or generated datasets.
+The supported import namespace is `governed_data_pipeline`. The package runs independently of consuming projects, notebooks and datasets. See the migration notes for the retired namespace and explicit-schema requirement.
 
-Also verified on Python 3.14.6 with pandas 3.0.6 and NumPy 2.5.3, using the existing D: project environment.
+## Where to develop changes
+
+Develop generic engines, public APIs, tests and documentation in this repository.
+Temporary export/build snapshots in consuming projects are historical copies;
+they are not development homes. Private learning lessons can have different
+contracts, so assess shared fixes in each project and verify the affected
+behaviour there.
+
+An editable installation uses Python source from this checkout. Reinstall with
+`python -m pip install -e .` when dependency metadata or entry points change;
+rebuild/reinstall deliberately if a consuming environment uses a wheel.
 
 ## Operating boundaries
 
@@ -93,4 +110,4 @@ Both demonstrations are small local lessons with one pipeline writer. CSV extrac
 
 The package is an educational portfolio implementation. Contract changes, source layout changes and target migrations require explicit review. Production deployment, concurrent-writer coordination and additional database adapters need further design and verification.
 
-Code is covered by [LICENSE](LICENSE). Dataset provenance and usage terms remain separate: see [data/public](data/public/README.md), [metadata](metadata/data_sources.yml), [SECURITY](SECURITY.md) and [portfolio notice](PORTFOLIO_NOTICE.md). Generated inputs, databases and progress remain local and excluded from Git.
+Code is covered by [LICENSE](LICENSE). Caller-owned input provenance and usage terms remain separate: see [source provenance](metadata/README.md), [SECURITY](SECURITY.md) and [portfolio notice](PORTFOLIO_NOTICE.md). This repository bundles no datasets. Generated demonstration inputs, databases and progress remain local and excluded from Git.

@@ -19,6 +19,21 @@ The SQLite database workflow uses a strict gate for every selected table and its
 
 `quality_reports.table_evidence()` supplies before/after profiles and per-field contract counts. It labels source accuracy as `not_assessed`. A row may fail several rules; cell-issue counts cannot be read as a distinct-row count. An empty dataset or unassessed field does not prove source quality.
 
-## Score gates remain separate
+## Explicit gate interfaces
 
-The retained `gates.evaluate_gate()` accepts a caller-supplied score and returns uppercase `PASS`, `WARN` or `STOP`. `dq.dimension_score()` scores passed field checks. The main workflows use `record_gates` to route records; a descriptive field score cannot determine which individual rows to load.
+Use the explicit names for new callers:
+
+| Interface | Inputs | Result |
+| --- | --- | --- |
+| `evaluate_score_gate(score, pass_threshold, warn_threshold)` | A finite quality score and thresholds between 0 and 1 | `GateDecision` with uppercase `PASS`, `WARN` or `STOP` in `status` |
+| `evaluate_record_gate(dispositions, thresholds=None, *, batch_failures=())` | Classified records, optional `GateThresholds` and structural failures | `GateResult` with lowercase `pass`, `warn` or `stop` in `outcome`, plus counts, rates and reasons |
+
+Both functions and `GateThresholds` can be imported from the package root:
+
+```python
+from governed_data_pipeline import GateThresholds, evaluate_record_gate, evaluate_score_gate
+```
+
+The explicit names are aliases of the existing callables, so signatures and results remain unchanged. The retained package-root `evaluate_gate` and `gates.evaluate_gate` still mean the score gate. `record_gates.evaluate_gate` still means the record gate used by the connected workflows. Existing imports continue to work; there is no automatic conversion between a score and record dispositions.
+
+`dq.dimension_score()` scores passed field checks. A score at or above its pass threshold passes; otherwise one at or above its warning threshold warns. Record reject/quarantine rates stop only when they exceed the configured maximum; a quarantine rate exceeding its warning level can warn when the batch has not stopped. A structural failure always stops the record gate, including an empty batch. A descriptive field score cannot determine which individual rows to load.

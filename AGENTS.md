@@ -55,7 +55,25 @@ Do not add credit-risk modelling, feature engineering, scoring, or ML-specific l
 
 ## Working style
 
+- Develop this package's generic engines, tests and documentation in this
+  checkout. Ignored staging/export copies in consuming projects are historical
+  snapshots, not development homes.
+- Private learning modules may have different contracts. Assess shared fixes in
+  each affected project and verify its behaviour rather than syncing source trees.
+- Keep the retained score-gate API compatible. Use explicit
+  `evaluate_score_gate` and `evaluate_record_gate` names for new callers.
+
 - Prefer small, understandable modules over a single large pipeline file.
 - Keep orchestration thin; business logic belongs in engines/components.
 - Do not claim a capability in README/docs until it is actually implemented or clearly marked planned.
-- Preserve a professional public surface: sample/synthetic data only, no private or restricted data.
+- Preserve a professional public surface: no bundled datasets or domain source catalogue. Neutral synthetic fixtures are generated locally only on explicit demonstration runs and stay ignored.
+
+## Repository boundaries
+
+Only `src/governed_data_pipeline/` is a supported package. Domain-specific source
+datasets, defaults, generation, statistical exploration and analytics windows
+belong to separate consuming projects. The statistical exploration lab is a
+separate component and must not be placed inside extraction or profiling engines.
+Profiling here provides descriptive data-quality evidence for pipeline runs.
+A pristine checkout contains no data directory. Keep caller-owned inputs,
+generated demonstrations and their run evidence local and excluded from Git.
