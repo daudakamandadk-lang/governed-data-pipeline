@@ -27,6 +27,21 @@ tests and publication scan, and builds a wheel. See [GitHub Actions](https://git
 for the status and logs of a particular commit. Configured checks and a completed
 hosted run are separate evidence.
 
+## Recorded hosted result
+
+The [verification job on 2026-10-10](https://github.com/daudakamandadk-lang/governed-data-pipeline/actions/runs/38075682652/job/114282035930)
+ran against commit `72735934d20bd801767ac148018bc1d1bf4bc057`:
+
+| Environment | Result |
+| --- | --- |
+| CPython 3.14.8; pandas 3.0.6; NumPy 2.5.3 | 120 tests passed; dependency check and publication scan passed; wheel built |
+
+This is historical evidence for that commit and environment. Use the
+[workflow's current runs](https://github.com/daudakamandadk-lang/governed-data-pipeline/actions/workflows/ci.yml)
+to check a later revision. The tests include clean/dirty CSV demonstrations,
+repeat behaviour and the five-event SQLite demonstration. They do not establish
+large-data performance or coverage of every allowed dependency combination.
+
 ## Recorded local result
 
 | Date | Environment | Result |
